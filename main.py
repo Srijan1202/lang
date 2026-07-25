@@ -1,4 +1,8 @@
 # from unittest import result
+from typing import List
+from unittest import result
+from pydantic import BaseModel,Field
+
 
 from dotenv import load_dotenv
 from yarl import Query
@@ -12,14 +16,26 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_tavily import TavilySearch
 
 
+class Job(BaseModel):
+    title: str = Field(description="Job title")
+    company: str = Field(description="Company name")
+    location: str = Field(description="Job location")
+    description: str = Field(description="Short description")
+    salary: str = Field(description="Salary if available")
+    url: str = Field(description="Application URL")
 
+
+class AgentResponse(BaseModel):
+    jobs: List[Job]
+
+    
 llm =ChatGoogleGenerativeAI(
     model="gemini-3.6-flash",
     temperature=0,
 )
 
 tools = [TavilySearch()]
-agent = create_agent(model=llm, tools=tools)
+agent = create_agent(model=llm, tools=tools, response_format=AgentResponse)
 
 def main():
     query = "What is the weather in Tokyo?"
@@ -29,13 +45,14 @@ def main():
         {
             "messages": [
                 HumanMessage(
-                    content="Search for 3 AI Engineer jobs using LangChain in the Bay Area on LinkedIn and list their details."
+                    content="Search for 3 AI Engineer jobs using LangChain in benaglore on LinkedIn and list their details within last 2 weeks."
                 )
             ]
         }
     )
 
-
+    print(result)
+    print(type(result))
 
 
 if __name__ == "__main__":
